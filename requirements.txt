@@ -1,0 +1,2 @@
+# HTTP client used by eClass CDP, Ollama table, and other API calls
+requests>=2.28.0

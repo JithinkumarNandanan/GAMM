@@ -1,0 +1,30 @@
+# Python cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Root virtual environment folder
+/datamap/
+.venv/
+venv/
+env/
+
+# IDE and cache
+.cursor/
+.cache/
+
+# Large data and outputs
+Output(Outdated)/
+output/
+Data/
+@Data/
+Documents/
+EClass/
+*.csv
+*.xlsx
+*.pdf
+*.json
+!simvsm_instance_values.json
+*.txt
+!requirements.txt
