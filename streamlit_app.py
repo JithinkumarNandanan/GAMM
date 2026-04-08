@@ -13,6 +13,7 @@ import streamlit as st
 import pandas as pd
 import os
 import tempfile
+import hashlib
 from pathlib import Path
 from typing import List, Dict
 from datetime import datetime
@@ -74,6 +75,16 @@ if 'user_matches' not in st.session_state:
     st.session_state.user_matches = []  # List of {source_node, target_node, reasoning}
 if 'all_possible_matches' not in st.session_state:
     st.session_state.all_possible_matches = {}  # Cache for each source node
+if 'source_enrichment_support_signature' not in st.session_state:
+    st.session_state.source_enrichment_support_signature = ""
+if 'target_enrichment_support_signature' not in st.session_state:
+    st.session_state.target_enrichment_support_signature = ""
+if 'source_was_enriched' not in st.session_state:
+    st.session_state.source_was_enriched = False
+if 'target_was_enriched' not in st.session_state:
+    st.session_state.target_was_enriched = False
+if 'enrich_target_with_support' not in st.session_state:
+    st.session_state.enrich_target_with_support = False
 
 
 def save_uploaded_files(uploaded_files, folder_name: str) -> str:
@@ -238,6 +249,16 @@ def enrich_nodes_collection(collection: SemanticNodeCollection, enricher: Semant
     enricher.collection = collection
     stats = enricher.enrich_collection(collection)
     return stats
+
+
+def build_support_signature(support_files, support_urls: List[str]) -> str:
+    """Build a stable fingerprint for selected support files and URLs."""
+    file_names = sorted([getattr(f, "name", "") for f in (support_files or []) if getattr(f, "name", "")])
+    urls = sorted([u.strip() for u in (support_urls or []) if u and u.strip()])
+    payload = "||".join(file_names + urls)
+    if not payload:
+        return ""
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 # Main UI
@@ -419,10 +440,10 @@ if st.session_state.workflow_state == WORKFLOW_STATES["EXTRACTION"]:
             st.session_state.workflow_state = WORKFLOW_STATES["NORMALIZATION"]
             st.rerun()
 
-# STEP 2: NORMALIZATION (Llama)
+# STEP 2: NORMALIZATION (Gemma)
 elif st.session_state.workflow_state == WORKFLOW_STATES["NORMALIZATION"]:
     st.header("Step 2: Normalize Nodes")
-    st.markdown("Normalize node names using local Llama AI (expand abbreviations). Results are shown by metadata (Source asset / Submodel).")
+    st.markdown("Normalize node names using local Gemma AI (expand abbreviations). Results are shown by metadata (Source asset / Submodel).")
     
     if not st.session_state.source_nodes and not st.session_state.target_nodes:
         st.warning("⚠️ No nodes extracted. Please go back to extraction step.")
@@ -433,8 +454,8 @@ elif st.session_state.workflow_state == WORKFLOW_STATES["NORMALIZATION"]:
         if st.button("⬅️ Back to Extraction"):
             st.session_state.workflow_state = WORKFLOW_STATES["EXTRACTION"]
             st.rerun()
-        if st.button("🦙 Normalize with Llama", type="primary", use_container_width=True):
-            with st.spinner("Normalizing node names with local Llama..."):
+        if st.button("✨ Normalize with Gemma", type="primary", use_container_width=True):
+            with st.spinner("Normalizing node names with local Gemma..."):
                 source_collection = SemanticNodeCollection()
                 target_collection = SemanticNodeCollection()
                 for node_dict in st.session_state.source_nodes:
@@ -520,11 +541,35 @@ elif st.session_state.workflow_state == WORKFLOW_STATES["ENRICHMENT"]:
         support_urls = st.session_state.get('support_urls', [])
         if support_urls:
             st.info(f"📎 Will fetch content from {len(support_urls)} URL(s)")
+
+        enrich_target_with_support = st.checkbox(
+            "Enrich target nodes using same support files/URLs",
+            value=st.session_state.enrich_target_with_support,
+            help="When enabled, target nodes are enriched with the same support context and search flow as source nodes."
+        )
+        st.session_state.enrich_target_with_support = enrich_target_with_support
+        
+        if st.button("🔎 Check if source/target used same support files", use_container_width=True):
+            source_enriched = st.session_state.get("source_was_enriched", False)
+            target_enriched = st.session_state.get("target_was_enriched", False)
+            source_sig = st.session_state.get("source_enrichment_support_signature", "")
+            target_sig = st.session_state.get("target_enrichment_support_signature", "")
+            if not source_enriched and not target_enriched:
+                st.warning("Neither source nor target has been enriched yet.")
+            elif source_enriched and not target_enriched:
+                st.warning("Source is enriched, but target is not enriched yet.")
+            elif target_enriched and not source_enriched:
+                st.warning("Target is enriched, but source is not enriched yet.")
+            elif source_sig and target_sig and source_sig == target_sig:
+                st.success("Source and target were enriched using the same support files/URLs.")
+            else:
+                st.error("Source and target were enriched with different support files/URLs.")
         
         if st.button("🔍 Start Enrichment", type="primary", use_container_width=True):
             with st.spinner("Enriching nodes... This may take a few minutes."):
                 # Initialize enricher
                 enricher = get_or_create_enricher(support_folder, support_urls=support_urls)
+                support_signature = build_support_signature(st.session_state.support_files, support_urls)
                 
                 # Convert to SemanticNodeCollections
                 source_collection = SemanticNodeCollection()
@@ -544,13 +589,24 @@ elif st.session_state.workflow_state == WORKFLOW_STATES["ENRICHMENT"]:
                         node.usage_of_data = node_dict.get("Usage of data (Affordance)")
                     target_collection.add_node(node)
                 
-                # Enrich source nodes only (target is not enriched – used as-is for mapping)
+                # Enrich source nodes
                 if source_collection.nodes:
                     st.write("Enriching source nodes...")
                     source_stats = enrich_nodes_collection(source_collection, enricher, "source")
                     st.success(f"✅ Enriched {source_stats.get('enriched_from_eclass', 0) + source_stats.get('enriched_from_ieccdd', 0) + source_stats.get('enriched_from_documents', 0) + source_stats.get('enriched_from_llama', 0) + source_stats.get('enriched_from_gemini', 0) + source_stats.get('enriched_from_openai', 0)} source nodes")
+                    st.session_state.source_was_enriched = True
+                    st.session_state.source_enrichment_support_signature = support_signature
                 if target_collection.nodes:
-                    st.info(f"ℹ️ Target nodes ({len(target_collection.nodes)}) kept as extracted (no enrichment).")
+                    if enrich_target_with_support:
+                        st.write("Enriching target nodes (same support context as source)...")
+                        target_stats = enrich_nodes_collection(target_collection, enricher, "target")
+                        st.success(f"✅ Enriched {target_stats.get('enriched_from_eclass', 0) + target_stats.get('enriched_from_ieccdd', 0) + target_stats.get('enriched_from_documents', 0) + target_stats.get('enriched_from_llama', 0) + target_stats.get('enriched_from_gemini', 0) + target_stats.get('enriched_from_openai', 0)} target nodes")
+                        st.session_state.target_was_enriched = True
+                        st.session_state.target_enrichment_support_signature = support_signature
+                    else:
+                        st.info(f"ℹ️ Target nodes ({len(target_collection.nodes)}) kept as extracted (no enrichment).")
+                        st.session_state.target_was_enriched = False
+                        st.session_state.target_enrichment_support_signature = ""
                 
                 # Update session state with enriched source nodes and unchanged target nodes
                 st.session_state.source_nodes = [semantic_node_to_dict(node) for node in source_collection.nodes]
