@@ -89,9 +89,15 @@ class SemanticMatch:
     
     def to_dict(self) -> Dict:
         """Convert match to dictionary for export."""
+        src_meta = self.source_node.metadata or {}
+        tgt_meta = self.target_node.metadata or {}
         return {
+            "source_idShort": src_meta.get("id_short") or src_meta.get("idShort") or self.source_node.name,
             "source_name": self.source_node.name,
+            "source_normalized_name": src_meta.get("normalized_name") or self.source_node.name,
+            "target_idShort": tgt_meta.get("id_short") or tgt_meta.get("idShort") or self.target_node.name,
             "target_name": self.target_node.name,
+            "target_normalized_name": tgt_meta.get("normalized_name") or self.target_node.name,
             "source_value": str(self.source_node.value),
             "target_value": str(self.target_node.value),
             "source_type": self.source_node.value_type,
@@ -128,6 +134,11 @@ class SemanticMatcher:
         self.exact_threshold = exact_match_threshold
         self.fuzzy_threshold = fuzzy_match_threshold
         self.semantic_threshold = semantic_match_threshold
+        # Stage-1 gate: only strong semantic+lexical candidates may use unit/type confirmation.
+        self.semantic_lexical_gate_threshold = 0.55
+        self.stage1_weights = {"semantic": 0.70, "lexical": 0.30}
+        self.confirmation_weights = {"unit": 0.40, "type": 0.60}
+        self.confirmation_bonus_scale = 0.15
         
         self.matches: List[SemanticMatch] = []
         self.unmatched_source: List[SemanticNode] = []
@@ -246,22 +257,25 @@ class SemanticMatcher:
             "semantic_similarity": semantic_sim
         }
         
-        # Weighted combination (prioritize semantic and compatibility)
-        # Weights: Unit=0.25, Type=0.25, Lexical=0.20, Semantic=0.30
-        weights = {
-            "unit": 0.25,
-            "type": 0.25,
-            "lexical": 0.20,
-            "semantic": 0.30
-        }
-        
-        # Calculate weighted confidence score
-        confidence_score = (
-            unit_compat * weights["unit"] +
-            type_compat * weights["type"] +
-            lexical_sim * weights["lexical"] +
-            semantic_sim * weights["semantic"]
+        # Stage 1: semantic + lexical only (primary signal).
+        stage1_score = (
+            semantic_sim * self.stage1_weights["semantic"] +
+            lexical_sim * self.stage1_weights["lexical"]
         )
+
+        gate_open = stage1_score >= self.semantic_lexical_gate_threshold
+        confirmation_score = 0.0
+        confirmation_bonus = 0.0
+        confidence_score = stage1_score
+
+        # Stage 2: unit/type are used only as a confirmation bonus.
+        if gate_open:
+            confirmation_score = (
+                unit_compat * self.confirmation_weights["unit"] +
+                type_compat * self.confirmation_weights["type"]
+            )
+            confirmation_bonus = self.confirmation_bonus_scale * confirmation_score
+            confidence_score = min(1.0, stage1_score + confirmation_bonus)
         
         # Determine match type based on highest contributing component
         if unit_compat == 1.0 and type_compat == 1.0 and lexical_sim >= 0.9:
@@ -291,7 +305,14 @@ class SemanticMatcher:
             details={
                 "method": "hybrid_matching",
                 "component_scores": component_scores,
-                "weights": weights
+                "stage1_score": stage1_score,
+                "semantic_lexical_gate_threshold": self.semantic_lexical_gate_threshold,
+                "gate_open": gate_open,
+                "confirmation_score": confirmation_score,
+                "confirmation_bonus": confirmation_bonus,
+                "stage1_weights": self.stage1_weights,
+                "confirmation_weights": self.confirmation_weights,
+                "confirmation_bonus_scale": self.confirmation_bonus_scale
             }
         )
     

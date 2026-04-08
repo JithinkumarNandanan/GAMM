@@ -48,8 +48,18 @@ class SemanticNode:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert semantic node to dictionary."""
+        meta = self.metadata or {}
+        id_short = (
+            meta.get("id_short")
+            or meta.get("idShort")
+            or getattr(self, "id_short", "")
+            or self.name
+        )
+        normalized_name = meta.get("normalized_name") or self.name
         return {
+            "idShort": id_short,
             "Name": self.name,
+            "Normalized Name": normalized_name,
             "Conceptual definition": self.conceptual_definition,
             "Usage of data (Affordance)": self.usage_of_data,
             "Value": str(self.value) if self.value else "",

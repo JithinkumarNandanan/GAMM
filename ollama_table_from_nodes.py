@@ -258,14 +258,14 @@ def run_ollama_table(
     Args:
         nodes: List of dicts with at least Name (and optionally Value, Value type, Unit, etc.)
         support_folder: Path to support documents folder
-        model: Ollama model name (default: env or llama3.2)
+        model: Ollama model name (default: env or gemma3:4b)
         ollama_url: Ollama base URL (default: env or http://localhost:11434)
         limit: Max nodes to process (0 = all)
     
     Returns:
         List of dicts with keys TABLE_COLUMNS (Name, Conceptual definition, Usage of data, Value, Value type, Unit, Source description)
     """
-    model = model or os.getenv("LLAMA_MODEL_NAME", "llama3.2")
+    model = model or os.getenv("LLAMA_MODEL_NAME", "gemma3:4b")
     ollama_url = (ollama_url or os.getenv("OLLAMA_URL", "http://localhost:11434")).rstrip("/")
     support_text = load_support_documents(support_folder)
     if limit > 0:
@@ -317,8 +317,8 @@ def main():
     )
     parser.add_argument(
         "--model",
-        default=os.getenv("LLAMA_MODEL_NAME", "llama3.2"),
-        help="Ollama model name (default: LLAMA_MODEL_NAME or llama3.2)",
+        default=os.getenv("LLAMA_MODEL_NAME", "gemma3:4b"),
+        help="Ollama model name (default: LLAMA_MODEL_NAME or gemma3:4b)",
     )
     parser.add_argument(
         "--ollama-url",

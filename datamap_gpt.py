@@ -72,7 +72,7 @@ if not LLAMA_AVAILABLE:
         except ImportError:
             torch = None
         LLAMA_BACKEND = 'transformers'
-        llama_model_name = os.getenv("LLAMA_MODEL_NAME", "meta-llama/Llama-3.2-3B-Instruct")
+        llama_model_name = os.getenv("LLAMA_MODEL_NAME", "google/gemma-2-2b-it")
         try:
             if os.getenv("LOAD_LLAMA_TRANSFORMERS", "false").lower() == "true":
                 LLAMA_MODEL = {
@@ -156,7 +156,7 @@ Only respond with the JSON object, no additional text."""
             if LLAMA_BACKEND == 'ollama':
                 import requests
                 ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-                model_name = os.getenv("LLAMA_MODEL_NAME", "llama3.2")
+                model_name = os.getenv("LLAMA_MODEL_NAME", "gemma3:4b")
                 response = requests.post(
                     f"{ollama_url}/api/generate",
                     json={
@@ -289,7 +289,7 @@ Use XPath-like notation. Only respond with the JSON object, no additional text."
             if LLAMA_BACKEND == 'ollama':
                 import requests
                 ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-                model_name = os.getenv("LLAMA_MODEL_NAME", "llama3.2")
+                model_name = os.getenv("LLAMA_MODEL_NAME", "gemma3:4b")
                 response = requests.post(
                     f"{ollama_url}/api/generate",
                     json={

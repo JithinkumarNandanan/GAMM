@@ -1,0 +1,618 @@
+{
+  "productionControl_-9": {
+    "class": "productionControl",
+    "key": -9,
+    "name": "PPS",
+    "parameters": {
+      "dispositionInterval": "86400",
+      "extraLose": "0",
+      "comment": ""
+    }
+  },
+  "supplier_-13": {
+    "class": "supplier",
+    "key": -13,
+    "name": "Zulieferer_Stoffe",
+    "parameters": {
+      "product": "{\"rows\": [{\"product\": \"3b4cc8c0-f8f2-40b6-9bb8-df9898508b37\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}]}",
+      "ShiftCalendar": "3",
+      "comment": ""
+    }
+  },
+  "inventory_-24": {
+    "class": "inventory",
+    "key": -24,
+    "name": "Lager_Transtoll",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"33c3fd4e-cbd4-422d-8e38-64f8ffd12835\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"e8ed0602-73bd-44bf-8aaa-713d39cd75f8\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"0e0af125-9577-426b-b817-59ba9681459d\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"e5398c59-7022-4604-aafe-c325994fdc95\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "inventory_-4": {
+    "class": "inventory",
+    "key": -4,
+    "name": "Lager_Vlies",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"58046721-6fe8-4638-a8dc-668d14efe299\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "inventory_-5": {
+    "class": "inventory",
+    "key": -5,
+    "name": "Lager_Klett",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"b66eb21a-6440-4dc1-ba3b-b4372956c916\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "inventory_-6": {
+    "class": "inventory",
+    "key": -6,
+    "name": "Lager_Keder",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"73eec6fb-79cb-4bcc-8d2e-485cc975572d\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "singleProcess_-17": {
+    "class": "singleProcess",
+    "key": -17,
+    "name": "Bullmer",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"BP\": \"3b4cc8c0-f8f2-40b6-9bb8-df9898508b37\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 180}, \"Zz\": {\"durationInSec\": 180}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"4c1b3c01-42bc-496f-b7c9-a715c4f7b034\", \"BP\": \"58046721-6fe8-4638-a8dc-668d14efe299\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 180}, \"Zz\": {\"durationInSec\": 180}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "joinProcess_-19": {
+    "class": "joinProcess",
+    "key": -19,
+    "name": "Nähereiarbeitsplatz",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "PartsListTable": "{\"rows\": [{\"BP\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"XBP\": 1, \"usedInProduct\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\"}, {\"BP\": \"cbee37fd-c215-4719-a653-5b8c8cfc6ea1\", \"XBP\": 1, \"usedInProduct\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\"}, {\"BP\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"XBP\": 1, \"usedInProduct\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\"}, {\"BP\": \"cbee37fd-c215-4719-a653-5b8c8cfc6ea1\", \"XBP\": 1, \"usedInProduct\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\"}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "2",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "inventory_-10": {
+    "class": "inventory",
+    "key": -10,
+    "name": "Transportgestell",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "inventory_-14": {
+    "class": "inventory",
+    "key": -14,
+    "name": "Sequenzrichter",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "singleProcess_-15": {
+    "class": "singleProcess",
+    "key": -15,
+    "name": "Wendeautomat",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\", \"BP\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 49}, \"Zz\": {\"durationInSec\": 49}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\", \"BP\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 49}, \"Zz\": {\"durationInSec\": 49}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "2",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "inventory_-16": {
+    "class": "inventory",
+    "key": -16,
+    "name": "Lager_Bezüge",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "joinProcess_-20": {
+    "class": "joinProcess",
+    "key": -20,
+    "name": "Polsterstation",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"ae9f46fa-4430-4261-bc94-ee9019fc839c\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"c9e2978d-4c50-4f9f-ba38-47fa6ddb692e\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "PartsListTable": "{\"rows\": [{\"BP\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\", \"XBP\": 1, \"usedInProduct\": \"ae9f46fa-4430-4261-bc94-ee9019fc839c\"}, {\"BP\": \"b89ee021-b318-42dd-8eac-793d168a8e62\", \"XBP\": 1, \"usedInProduct\": \"ae9f46fa-4430-4261-bc94-ee9019fc839c\"}, {\"BP\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\", \"XBP\": 1, \"usedInProduct\": \"c9e2978d-4c50-4f9f-ba38-47fa6ddb692e\"}, {\"BP\": \"b89ee021-b318-42dd-8eac-793d168a8e62\", \"XBP\": 1, \"usedInProduct\": \"c9e2978d-4c50-4f9f-ba38-47fa6ddb692e\"}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "supplier_-21": {
+    "class": "supplier",
+    "key": -21,
+    "name": "Zulieferer_Polster",
+    "parameters": {
+      "product": "{\"rows\": [{\"product\": \"b89ee021-b318-42dd-8eac-793d168a8e62\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}]}",
+      "ShiftCalendar": "",
+      "comment": ""
+    }
+  },
+  "inventory_-22": {
+    "class": "inventory",
+    "key": -22,
+    "name": "Lager_Polster",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"b89ee021-b318-42dd-8eac-793d168a8e62\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "joinProcess_-23": {
+    "class": "joinProcess",
+    "key": -23,
+    "name": "Polstermontage",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "PartsListTable": "{\"rows\": [{\"BP\": \"33c3fd4e-cbd4-422d-8e38-64f8ffd12835\", \"XBP\": 1, \"usedInProduct\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\"}, {\"BP\": \"e5398c59-7022-4604-aafe-c325994fdc95\", \"XBP\": 1, \"usedInProduct\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\"}, {\"BP\": \"ae9f46fa-4430-4261-bc94-ee9019fc839c\", \"XBP\": 1, \"usedInProduct\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\"}, {\"BP\": \"0e0af125-9577-426b-b817-59ba9681459d\", \"XBP\": 1, \"usedInProduct\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\"}, {\"BP\": \"e8ed0602-73bd-44bf-8aaa-713d39cd75f8\", \"XBP\": 1, \"usedInProduct\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\"}, {\"BP\": \"33c3fd4e-cbd4-422d-8e38-64f8ffd12835\", \"XBP\": 1, \"usedInProduct\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\"}, {\"BP\": \"e5398c59-7022-4604-aafe-c325994fdc95\", \"XBP\": 1, \"usedInProduct\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\"}, {\"BP\": \"0e0af125-9577-426b-b817-59ba9681459d\", \"XBP\": 1, \"usedInProduct\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\"}, {\"BP\": \"e8ed0602-73bd-44bf-8aaa-713d39cd75f8\", \"XBP\": 1, \"usedInProduct\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\"}, {\"BP\": \"c9e2978d-4c50-4f9f-ba38-47fa6ddb692e\", \"XBP\": 1, \"usedInProduct\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\"}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "inventory_-25": {
+    "class": "inventory",
+    "key": -25,
+    "name": "Lager_Polsterlehnen",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"ae9f46fa-4430-4261-bc94-ee9019fc839c\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"c9e2978d-4c50-4f9f-ba38-47fa6ddb692e\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "supermarketStore_-26": {
+    "class": "supermarketStore",
+    "key": -26,
+    "name": "Supermarkt_Anbauteile",
+    "parameters": {
+      "product": "{\"rows\": [{\"product\": \"33c3fd4e-cbd4-422d-8e38-64f8ffd12835\", \"InitialStock\": 0, \"SafetyStock\": 0, \"ReorderLevel\": 0, \"MaximumStock\": 1, \"CarrierCapacityProduct\": -1}, {\"product\": \"0e0af125-9577-426b-b817-59ba9681459d\", \"InitialStock\": 0, \"SafetyStock\": 0, \"ReorderLevel\": 0, \"MaximumStock\": 1, \"CarrierCapacityProduct\": -1}, {\"product\": \"e8ed0602-73bd-44bf-8aaa-713d39cd75f8\", \"InitialStock\": 0, \"SafetyStock\": 0, \"ReorderLevel\": 0, \"MaximumStock\": 1, \"CarrierCapacityProduct\": -1}, {\"product\": \"e5398c59-7022-4604-aafe-c325994fdc95\", \"InitialStock\": 0, \"SafetyStock\": 0, \"ReorderLevel\": 0, \"MaximumStock\": 1, \"CarrierCapacityProduct\": -1}]}",
+      "maxCarrierNum": "-1",
+      "tiStockCheckInterval": "0",
+      "comment": ""
+    }
+  },
+  "singleProcess_-27": {
+    "class": "singleProcess",
+    "key": -27,
+    "name": "Q_Gate",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\", \"BP\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\", \"BP\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "inventory_-28": {
+    "class": "inventory",
+    "key": -28,
+    "name": "Lager_Lehne",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "joinProcess_-30": {
+    "class": "joinProcess",
+    "key": -30,
+    "name": "Rondell",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "PartsListTable": "{\"rows\": [{\"BP\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\", \"XBP\": 1, \"usedInProduct\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\"}, {\"BP\": \"89a1f95d-1d59-42f2-93cb-8061ca7ffb7e\", \"XBP\": 1, \"usedInProduct\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\"}, {\"BP\": \"81bb9fef-7c54-4c9b-ade7-045b466238e0\", \"XBP\": 1, \"usedInProduct\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\"}, {\"BP\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\", \"XBP\": 1, \"usedInProduct\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\"}, {\"BP\": \"0e6656fe-53b5-48a9-bfc0-00ffd998872b\", \"XBP\": 1, \"usedInProduct\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\"}, {\"BP\": \"89a1f95d-1d59-42f2-93cb-8061ca7ffb7e\", \"XBP\": 1, \"usedInProduct\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\"}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "2",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "inventory_-31": {
+    "class": "inventory",
+    "key": -31,
+    "name": "Lager_Sitzgestell",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"89a1f95d-1d59-42f2-93cb-8061ca7ffb7e\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"81bb9fef-7c54-4c9b-ade7-045b466238e0\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"0e6656fe-53b5-48a9-bfc0-00ffd998872b\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "supplier_-34": {
+    "class": "supplier",
+    "key": -34,
+    "name": "Zulieferer_Sitzkasette",
+    "parameters": {
+      "product": "{\"rows\": [{\"product\": \"a901826f-b473-4b03-b996-767db22ece7e\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}]}",
+      "ShiftCalendar": "",
+      "comment": ""
+    }
+  },
+  "singleProcess_-33": {
+    "class": "singleProcess",
+    "key": -33,
+    "name": "Schraubautomat",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"89a1f95d-1d59-42f2-93cb-8061ca7ffb7e\", \"BP\": \"a901826f-b473-4b03-b996-767db22ece7e\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 36}, \"Zz\": {\"durationInSec\": 36}, \"TransferQuantity\": 2, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "supplier_-35": {
+    "class": "supplier",
+    "key": -35,
+    "name": "Zulieferer_Sitzkissen",
+    "parameters": {
+      "product": "{\"rows\": [{\"product\": \"81bb9fef-7c54-4c9b-ade7-045b466238e0\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}, {\"product\": \"0e6656fe-53b5-48a9-bfc0-00ffd998872b\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}]}",
+      "ShiftCalendar": "2",
+      "comment": ""
+    }
+  },
+  "inventory_-36": {
+    "class": "inventory",
+    "key": -36,
+    "name": "Paarlagerung",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}, {\"Product\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "singleProcess_-37": {
+    "class": "singleProcess",
+    "key": -37,
+    "name": "Kontrolle",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\", \"BP\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\", \"BP\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "2",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "singleProcess_-39": {
+    "class": "singleProcess",
+    "key": -39,
+    "name": "Keder_ablängung",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"cbee37fd-c215-4719-a653-5b8c8cfc6ea1\", \"BP\": \"73eec6fb-79cb-4bcc-8d2e-485cc975572d\", \"XBP\": 1, \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 150}, \"Zz\": {\"durationInSec\": 150}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "supplier_-40": {
+    "class": "supplier",
+    "key": -40,
+    "name": "Zulieferer_Anbauteile",
+    "parameters": {
+      "product": "{\"rows\": [{\"product\": \"585d9026-362a-4c5b-bb1e-412779a72333\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}]}",
+      "ShiftCalendar": "",
+      "comment": ""
+    }
+  },
+  "inventory_-41": {
+    "class": "inventory",
+    "key": -41,
+    "name": "Lager_Anbauteile",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"585d9026-362a-4c5b-bb1e-412779a72333\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "joinProcess_-42": {
+    "class": "joinProcess",
+    "key": -42,
+    "name": "Nähautomat",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"XLos\": 1, \"PlannedCycleTime\": {\"durationInSec\": 60}, \"Zz\": {\"durationInSec\": 60}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "PartsListTable": "{\"rows\": [{\"BP\": \"b66eb21a-6440-4dc1-ba3b-b4372956c916\", \"XBP\": 1, \"usedInProduct\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\"}, {\"BP\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"XBP\": 1, \"usedInProduct\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\"}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "inventory_-43": {
+    "class": "inventory",
+    "key": -43,
+    "name": "Lager_Sitzkassette",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"a901826f-b473-4b03-b996-767db22ece7e\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "customer_-38": {
+    "class": "customer",
+    "key": -38,
+    "name": "Kunde",
+    "parameters": {
+      "Produkte": "{\"rows\": [{\"Product\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\", \"Quantity\": 331, \"Interval\": {\"durationInSec\": 86400}, \"Variation\": 0, \"PlannedCycleTime\": {\"durationInSec\": 86400}, \"OrderLotSize\": -1}, {\"Product\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\", \"Quantity\": 220, \"Interval\": {\"durationInSec\": 86400}, \"Variation\": 0, \"PlannedCycleTime\": {\"durationInSec\": 86400}, \"OrderLotSize\": -1}]}",
+      "OrderIndex": "Bedarf nach Kundentakt",
+      "threshold": "86400",
+      "OrderTptTime_HistInterval": "43200",
+      "ShiftCalendar": "",
+      "comment": ""
+    }
+  },
+  "fifoStore_-44": {
+    "class": "fifoStore",
+    "key": -44,
+    "name": "FIFO",
+    "parameters": {
+      "TransportationTime": "60",
+      "Capacity": "50",
+      "ExitStrategy": "Erster freier Nachfolger",
+      "comment": ""
+    }
+  },
+  "inventory_-45": {
+    "class": "inventory",
+    "key": -45,
+    "name": "Lager",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "inventory_-46": {
+    "class": "inventory",
+    "key": -46,
+    "name": "Lager_Stoffe",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"3b4cc8c0-f8f2-40b6-9bb8-df9898508b37\", \"InitialStock\": 0, \"CarrierCapacityProduct\": -1}]}",
+      "DelayTime": "0",
+      "maxCarrierNum": "-1",
+      "comment": ""
+    }
+  },
+  "multiProcess_-51": {
+    "class": "multiProcess",
+    "key": -51,
+    "name": "Nähautomat",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"BP\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"XBP\": 1, \"XLos\": 2, \"PlannedCycleTime\": {\"durationInSec\": 186}, \"Zz\": {\"durationInSec\": 186}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "Capacity": "2",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "clockedProcess_-52": {
+    "class": "clockedProcess",
+    "key": -52,
+    "name": "Rondell",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\", \"BP\": \"da35f86d-e33c-4b0e-80ae-616ae19f25a7\", \"XBP\": 1, \"XLos\": 6, \"PlannedCycleTime\": {\"durationInSec\": 59}, \"Zz\": {\"durationInSec\": 59}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0}, {\"Product\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\", \"BP\": \"c046e1d9-93bd-4ad9-a1c8-b017d11d5a41\", \"XBP\": 1, \"XLos\": 6, \"PlannedCycleTime\": {\"durationInSec\": 59}, \"Zz\": {\"durationInSec\": 59}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "Capacity": "6",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "2",
+      "AllBaseProdInStorageNecessary": "False",
+      "MinMuQtyForTaktMovement": "0",
+      "TAKTRestrictionMode": "NoRestriction",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "multiProcess_-53": {
+    "class": "multiProcess",
+    "key": -53,
+    "name": "Polsterstation",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"c9e2978d-4c50-4f9f-ba38-47fa6ddb692e\", \"BP\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\", \"XBP\": 1, \"XLos\": 16, \"PlannedCycleTime\": {\"durationInSec\": 480}, \"Zz\": {\"durationInSec\": 480}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"ae9f46fa-4430-4261-bc94-ee9019fc839c\", \"BP\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\", \"XBP\": 1, \"XLos\": 16, \"PlannedCycleTime\": {\"durationInSec\": 480}, \"Zz\": {\"durationInSec\": 480}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "Capacity": "16",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "multiProcess_-54": {
+    "class": "multiProcess",
+    "key": -54,
+    "name": "Polstermontage",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"6a6c22ec-11bb-42db-8c0f-9d496ca0742e\", \"BP\": \"c9e2978d-4c50-4f9f-ba38-47fa6ddb692e\", \"XBP\": 1, \"XLos\": 16, \"PlannedCycleTime\": {\"durationInSec\": 540}, \"Zz\": {\"durationInSec\": 540}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"ef05549a-f0db-47cc-bdce-ffc849e00c6e\", \"BP\": \"ae9f46fa-4430-4261-bc94-ee9019fc839c\", \"XBP\": 1, \"XLos\": 16, \"PlannedCycleTime\": {\"durationInSec\": 540}, \"Zz\": {\"durationInSec\": 540}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "Capacity": "16",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "multiProcess_-55": {
+    "class": "multiProcess",
+    "key": -55,
+    "name": "Bullmer",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"BP\": \"3b4cc8c0-f8f2-40b6-9bb8-df9898508b37\", \"XBP\": 1, \"XLos\": 2, \"PlannedCycleTime\": {\"durationInSec\": 98}, \"Zz\": {\"durationInSec\": 98}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "Capacity": "2",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "3",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "multiProcess_-56": {
+    "class": "multiProcess",
+    "key": -56,
+    "name": "Nähereiarbeitsplatz",
+    "parameters": {
+      "ProductTable": "{\"rows\": [{\"Product\": \"69dfe368-44f9-4aae-8a98-2637fd5d889f\", \"BP\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"XBP\": 1, \"XLos\": 16, \"PlannedCycleTime\": {\"durationInSec\": 49}, \"Zz\": {\"durationInSec\": 49}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}, {\"Product\": \"cd45a7af-9cef-4591-be24-f4f9b796010c\", \"BP\": \"17424ea7-36a8-42ba-b1bb-72d68eb56285\", \"XBP\": 1, \"XLos\": 16, \"PlannedCycleTime\": {\"durationInSec\": 49}, \"Zz\": {\"durationInSec\": 49}, \"TransferQuantity\": 1, \"ReworkRate\": 0, \"ScrapRate\": 0, \"Prio\": 0, \"MinReworkingTime\": {\"durationInSec\": 0}, \"MaxReworkingTime\": {\"durationInSec\": 0}}]}",
+      "isValueAdding": "True",
+      "NumberOfWorkers": "0",
+      "Capacity": "8",
+      "SetupTime": "{\"simple\": {\"duration\": 0}}",
+      "Availability": "100",
+      "MTTR": "0",
+      "ExitStrategy": "erster freier Nachfolger",
+      "ShiftCalendar": "2",
+      "Reworking": "False",
+      "AllBaseProdInStorageNecessary": "False",
+      "DisplayStats": "True",
+      "comment": ""
+    }
+  },
+  "supplier_-57": {
+    "class": "supplier",
+    "key": -57,
+    "name": "Zulieferer",
+    "parameters": {
+      "product": "{\"rows\": [{\"product\": \"33c3fd4e-cbd4-422d-8e38-64f8ffd12835\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}, {\"product\": \"e8ed0602-73bd-44bf-8aaa-713d39cd75f8\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}, {\"product\": \"0e0af125-9577-426b-b817-59ba9681459d\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}, {\"product\": \"e5398c59-7022-4604-aafe-c325994fdc95\", \"PackagingSize\": 1, \"RestockingTime\": {\"durationInSec\": 0}}]}",
+      "ShiftCalendar": "",
+      "comment": ""
+    }
+  }
+}

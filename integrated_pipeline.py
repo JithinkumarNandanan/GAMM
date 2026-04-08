@@ -58,13 +58,13 @@ class IntegratedPipeline:
             support_folder: Folder containing support documents for enrichment
             support_urls: Optional list of URLs to load as support docs (e.g. https://simvsm.info/en/index.html?processsingle.html for SimVSM parameter definitions)
             use_gemini: Whether to use Gemini API for description generation (default: False)
-            use_ollama_table: If True, fill descriptions via Ollama + support docs and skip eClass/IEC enrichment
-            use_llama_unit_for_target: For target (standard) nodes missing unit: "clarification" = use Ollama;
+            use_ollama_table: If True, fill descriptions via Gemma (via Ollama) + support docs and skip eClass/IEC enrichment
+            use_llama_unit_for_target: For target (standard) nodes missing unit: "clarification" = use Gemma;
                 "never" = skip (no unit search for target)
             target_hierarchy_csv: If set, load target nodes from these AAS hierarchy CSV(s) (every row = matchable
                 node). Can pass multiple CSVs so TechnicalData, ProcessParameters, WWMD, QualityControlForMachining, etc. are all included.
             target_hierarchy_dir: If set, load every *_aas_hierarchy.csv in this directory and merge into target (so "the others" are not missed).
-            use_full_normalize: If True, use Ollama for source name normalization (slow); if False, use documents + generic only (fast).
+            use_full_normalize: If True, use Gemma for source name normalization (slow); if False, use documents + generic only (fast).
         """
         self.source_folder = source_folder
         self.target_folder = target_folder
@@ -153,17 +153,17 @@ class IntegratedPipeline:
         else:
             self._extract_from_folder(self.target_folder, self.target_collection, "target")
         
-        # Step 2b: Normalize source node names only (documents + generic by default; use --full-normalize for Ollama)
+        # Step 2b: Normalize source node names only (documents + generic by default; use --full-normalize for Gemma)
         print("\nSTEP 2b: Normalizing SOURCE node names")
         print("-"*70)
         doc_lib = getattr(self.enricher, "documents", None)
         fast_norm = not getattr(self, "use_full_normalize", False)
         normalize_collection(self.source_collection, document_library=doc_lib, fast_only=fast_norm)
-        print("  [OK] Source names normalized (fast)" if fast_norm else "  [OK] Source names normalized (Ollama)")
+        print("  [OK] Source names normalized (fast)" if fast_norm else "  [OK] Source names normalized (Gemma)")
         
         if self.use_ollama_table:
-            # Step 2c: Fill nodes via Ollama + support documents (alternative to eClass/IEC enrichment)
-            print("\nSTEP 2c: Filling semantic nodes via OLLAMA + support documents")
+            # Step 2c: Fill nodes via Gemma + support documents (alternative to eClass/IEC enrichment)
+            print("\nSTEP 2c: Filling semantic nodes via GEMMA + support documents")
             print("-"*70)
             try:
                 from ollama_table_from_nodes import (
@@ -177,16 +177,16 @@ class IntegratedPipeline:
             support_folder = self.enricher.documents.support_folder
             # Source
             source_node_dicts = collection_to_node_dicts(self.source_collection)
-            print(f"  Source: {len(source_node_dicts)} nodes -> Ollama...")
+            print(f"  Source: {len(source_node_dicts)} nodes -> Gemma...")
             source_rows = run_ollama_table(source_node_dicts, support_folder)
             self._apply_ollama_rows_to_collection(self.source_collection, source_rows)
             source_csv = os.path.join(self.output_folder, "source_ollama_table.csv")
             self._write_ollama_table_csv(source_rows, source_csv)
-            print(f"  [OK] Saved source Ollama table: {source_csv}")
+            print(f"  [OK] Saved source Gemma table: {source_csv}")
             # Target: no enrichment (saved as extracted only)
             self._save_collection_to_csv(self.source_collection, os.path.join(self.output_folder, "source_nodes.csv"))
             self._save_collection_to_csv(self.target_collection, os.path.join(self.output_folder, "target_nodes.csv"))
-            print(f"  [INFO] Target nodes saved as extracted (no Ollama enrichment)")
+            print(f"  [INFO] Target nodes saved as extracted (no Gemma enrichment)")
             # Fallback: eCl@ss + IEC CDD for source only (target not enriched)
             print("\nSTEP 2d: Fallback enrichment (eCl@ss + IEC CDD for source nodes still needing description)")
             print("-"*70)
@@ -322,7 +322,8 @@ class IntegratedPipeline:
         # Convert extracted nodes to SemanticNode objects
         for node_dict in extractor.semantic_nodes:
             # Extract metadata if present
-            metadata = node_dict.get("_metadata", {})
+            metadata = dict(node_dict.get("_metadata", {}) or {})
+            source_file = metadata.pop("source_file", None) or f"{label}_files"
             
             node = create_semantic_node_from_extraction(
                 name=node_dict["Name"],
@@ -330,8 +331,8 @@ class IntegratedPipeline:
                 value=node_dict["Value"],
                 value_type=node_dict["Value type"] or "String",
                 unit=node_dict["Unit"],
-                source_file=f"{label}_files",
-                **metadata  # Pass metadata (e.g., eclass_id) to SemanticNode
+                source_file=source_file,
+                metadata=metadata
             )
             collection.add_node(node)
         
@@ -379,7 +380,7 @@ class IntegratedPipeline:
         """Save semantic node collection to CSV."""
         with open(filepath, 'w', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=[
-                "Name", "Conceptual definition", "Usage of data (Affordance)",
+                "idShort", "Name", "Normalized Name", "Conceptual definition", "Usage of data (Affordance)",
                 "Value", "Value type", "Unit", "Source description",
                 "Source file", "Enriched", "Enrichment source"
             ])
@@ -525,16 +526,16 @@ Examples:
     parser.add_argument('--no-gemini', action='store_true',
                        help='Disable Gemini API for description generation')
     parser.add_argument('--ollama-table', action='store_true',
-                       help='Use Ollama + support documents to fill node table (skips eClass/IEC enrichment; requires Ollama running)')
+                       help='Use Gemma (via Ollama) + support documents to fill node table (skips eClass/IEC enrichment; requires Ollama running)')
     parser.add_argument('--target-unit', default='clarification', choices=('clarification', 'never'),
-                       help="Target (standard) nodes missing unit: 'clarification' = use Ollama; 'never' = skip (default: clarification)")
+                       help="Target (standard) nodes missing unit: 'clarification' = use Gemma; 'never' = skip (default: clarification)")
     parser.add_argument('--target-hierarchy-csv', action='append', default=None, dest='target_hierarchy_csv_list',
                        metavar='CSV',
                        help="Load target from AAS hierarchy CSV(s). Repeat to add multiple templates (e.g. WWMD + QualityControl + ProcessParameters).")
     parser.add_argument('--target-hierarchy-dir', default=None,
                        help="Load every *_aas_hierarchy.csv in this directory as target (so all templates are included and no nodes are missed)")
     parser.add_argument('--full-normalize', action='store_true',
-                       help="Use Ollama for source name normalization (slow). Default: fast (documents + generic only)")
+                       help="Use Gemma for source name normalization (slow). Default: fast (documents + generic only)")
     
     args = parser.parse_args()
     

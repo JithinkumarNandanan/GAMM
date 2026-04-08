@@ -67,13 +67,98 @@ def _is_project_json(data: Dict) -> bool:
     return "nodeDataArray" in model and isinstance(model.get("nodeDataArray"), list)
 
 
-# No built-in glossary: extraction only. Descriptions/units come from support files or enrichment.
+# SIMVSM parameter definitions extracted from HTML documentation.
+# File is produced by extract_html_descriptions.py and used at extraction time
+# so parameter meaning can be class-specific (e.g. Process single/multiple/assembly).
+SIMVSM_CLASS_MAP = {
+    "singleprocess": "Process (single)",
+    "multiprocess": "Process (multiple)",
+    "assemblyprocess": "Process (assembly)",
+    "leadprocess": "Process (lead)",
+    "disassemblyprocess": "Process (dis-assembly)",
+    "reworkprocess": "Process (re-work)",
+}
 
 
-def _simvsm_param_extract_only(param_class: str, param_type: str) -> Dict[str, str]:
-    """Return empty definition/usage/unit for a SimvSM parameter. Extract nodes only; support files/enrichment fill details."""
+def _normalize_text_key(text: str) -> str:
+    if not text:
+        return ""
+    return "".join(ch.lower() for ch in str(text) if ch.isalnum())
+
+
+def _load_simvsm_html_params() -> Dict[str, Dict[str, str]]:
+    """Load class->parameter->description mapping from simvsm_extracted_parameters.json."""
+    mapping: Dict[str, Dict[str, str]] = {}
+    json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "simvsm_extracted_parameters.json")
+    if not os.path.isfile(json_path):
+        return mapping
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            entries = json.load(f)
+    except Exception:
+        return mapping
+
+    if not isinstance(entries, list):
+        return mapping
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        class_name = (entry.get("class_name") or "").strip()
+        if not class_name:
+            continue
+        class_bucket = mapping.setdefault(class_name, {})
+        for p in entry.get("parameters", []) or []:
+            if not isinstance(p, dict):
+                continue
+            param_name = (p.get("parameter_name") or "").strip()
+            desc = (p.get("description") or "").strip()
+            # Keep first non-empty description when duplicates exist in one class.
+            if param_name and desc and not class_bucket.get(param_name):
+                class_bucket[param_name] = desc
+    return mapping
+
+
+SIMVSM_HTML_PARAMS = _load_simvsm_html_params()
+
+
+def _resolve_simvsm_class(node_class: str) -> str:
+    """Resolve project node class to HTML class title."""
+    n = _normalize_text_key(node_class)
+    if not n:
+        return ""
+    if n in SIMVSM_CLASS_MAP:
+        return SIMVSM_CLASS_MAP[n]
+    # Heuristic fallback for naming variants.
+    if "process" in n:
+        if "single" in n:
+            return "Process (single)"
+        if "multiple" in n or "multi" in n:
+            return "Process (multiple)"
+        if "assembly" in n:
+            return "Process (assembly)"
+        if "lead" in n:
+            return "Process (lead)"
+    return ""
+
+
+def _simvsm_param_extract_only(node_class: str, param_class: str, param_type: str) -> Dict[str, str]:
+    """Return class-aware SimVSM parameter definition if available, else empty details."""
+    resolved_class = _resolve_simvsm_class(node_class)
+    desc = ""
+    if resolved_class and resolved_class in SIMVSM_HTML_PARAMS:
+        class_params = SIMVSM_HTML_PARAMS.get(resolved_class, {})
+        desc = class_params.get(param_class, "")
+        if not desc:
+            # Soft fallback: normalized parameter key match.
+            p_norm = _normalize_text_key(param_class)
+            for k, v in class_params.items():
+                if _normalize_text_key(k) == p_norm and v:
+                    desc = v
+                    break
     return {
-        "conceptual_definition": "",
+        "conceptual_definition": desc,
         "usage_of_data": "",
         "unit": "",
         "source_description": "",
@@ -478,7 +563,7 @@ class SemanticNodeExtractor:
                     param_value = param.get("value")
                     value_str = self._project_value_to_str(param_value)
                     param_path = f"{path}.{param_class}"
-                    simvsm_info = _simvsm_param_extract_only(param_class, param_type)
+                    simvsm_info = _simvsm_param_extract_only(node_class, param_class, param_type)
                     
                     # Store instance-specific parameter value
                     instance_id_key = f"{node_class}_{node_key}"
@@ -1258,7 +1343,9 @@ class SemanticNodeExtractor:
             return
         
         fieldnames = [
+            "idShort",
             "Name",
+            "Normalized Name",
             "Conceptual definition",
             "Usage of data",
             "Value",
@@ -1269,7 +1356,10 @@ class SemanticNodeExtractor:
         ]
         # Write only these columns; _metadata and other extras are omitted
         def row_for_csv(node: Dict) -> Dict:
-            return {k: node.get(k, "") for k in fieldnames}
+            out = {k: node.get(k, "") for k in fieldnames}
+            out["idShort"] = node.get("idShort") or node.get("Name", "")
+            out["Normalized Name"] = node.get("Normalized Name") or node.get("normalized_name") or node.get("Name", "")
+            return out
 
         try:
             with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:

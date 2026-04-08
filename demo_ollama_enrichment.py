@@ -108,7 +108,7 @@ def demo_normalization_prompt():
 # API REQUEST (what is actually sent to Ollama)
 # ---------------------------------------------------------------------------
 
-def ollama_request_body(prompt: str, model: str = "llama3.2", max_tokens: int = 800) -> dict:
+def ollama_request_body(prompt: str, model: str = "gemma3:4b", max_tokens: int = 800) -> dict:
     """Exact JSON body sent to POST http://localhost:11434/api/generate"""
     return {
         "model": model,
@@ -148,7 +148,7 @@ def main():
     print(prompt2)
     print("\n--- API REQUEST (POST /api/generate) ---")
     body2 = {
-        "model": os.getenv("LLAMA_MODEL_NAME", "llama3.2"),
+        "model": os.getenv("LLAMA_MODEL_NAME", "gemma3:4b"),
         "prompt": prompt2,
         "stream": False,
         "options": {"temperature": 0.7, "top_p": 0.9, "max_tokens": 300},
@@ -164,7 +164,7 @@ def main():
     print(prompt3)
     print("\n--- API REQUEST (POST /api/generate) ---")
     body3 = {
-        "model": os.getenv("LLAMA_MODEL_NAME", "llama3.2"),
+        "model": os.getenv("LLAMA_MODEL_NAME", "gemma3:4b"),
         "prompt": prompt3,
         "stream": False,
         "options": {"temperature": 0.3, "max_tokens": 100},

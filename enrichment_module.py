@@ -179,7 +179,7 @@ if not LLAMA_AVAILABLE:
                 print(f"Warning: Could not load llama-stack model from {llama_stack_path}: {e}")
         
         if not LLAMA_AVAILABLE:
-            llama_model_name = os.getenv("LLAMA_MODEL_NAME", "meta-llama/Llama-3.2-3B-Instruct")
+            llama_model_name = os.getenv("LLAMA_MODEL_NAME", "google/gemma-2-2b-it")
             try:
                 if os.getenv("LOAD_LLAMA_TRANSFORMERS", "false").lower() == "true":
                     LLAMA_MODEL = {
@@ -588,7 +588,39 @@ def _generic_normalize_name(name: str) -> str:
     return ' '.join(result)
 
 
-def expand_name_with_llama(name: str, context: str = "", path: str = "") -> Optional[str]:
+def _extract_json_object(text: str) -> Optional[Dict[str, Any]]:
+    """Best-effort parse first JSON object from LLM output."""
+    if not text:
+        return None
+    s = text.strip()
+    if s.startswith("```"):
+        s = re.sub(r"^```\w*\s*", "", s)
+        s = re.sub(r"\s*```$", "", s).strip()
+    try:
+        parsed = json.loads(s)
+        return parsed if isinstance(parsed, dict) else None
+    except Exception:
+        m = re.search(r"\{[\s\S]*\}", s)
+        if not m:
+            return None
+        try:
+            parsed = json.loads(m.group(0))
+            return parsed if isinstance(parsed, dict) else None
+        except Exception:
+            return None
+
+
+def _is_valid_short_label(label: str) -> bool:
+    t = (label or "").strip()
+    if not t:
+        return False
+    if ":" in t or "->" in t:
+        return False
+    words = [w for w in t.split() if w]
+    return 1 <= len(words) <= 5
+
+
+def expand_name_with_llama(name: str, context: str = "", path: str = "", node: Optional[SemanticNode] = None) -> Optional[str]:
     """
     Use local Llama to expand a technical variable name into a human-readable phrase.
     Context-aware: Same abbreviation (V, P, T, f) can mean different things based on Path.
@@ -606,95 +638,90 @@ def expand_name_with_llama(name: str, context: str = "", path: str = "") -> Opti
     if not LLAMA_AVAILABLE:
         return None
     
-    # Build prompt with path/context for disambiguation
-    # Simplified prompt - relies on training data for context-aware disambiguation
-    prompt_parts = []
-    
-    if path and path.strip():
-        prompt_parts.append(f"Path: {path.strip()}")
-        prompt_parts.append("")
-    
-    if context and context.strip():
-        prompt_parts.append(f"Context: {context.strip()}")
-        prompt_parts.append("")
-    
-    prompt_parts.append(f"Task: Expand this technical variable name into a clear, human-readable phrase.")
-    prompt_parts.append("")
-    prompt_parts.append("Use the Path/Context to disambiguate abbreviations:")
-    prompt_parts.append("- In IndustrialMotor/Electrical: V→Voltage, I→Current, R→Resistance, n→Rotation Speed")
-    prompt_parts.append("- In Mechanical/Linear: V→Velocity, n→Rotation Speed")
-    prompt_parts.append("- In Electrical contexts: V→Voltage, I→Current, P→Power")
-    prompt_parts.append("- In Fluid/Pressure contexts: P→Pressure, f→Flow")
-    prompt_parts.append("")
-    prompt_parts.append("IMPORTANT: Expand ALL abbreviations fully. Single letters must become full words.")
-    prompt_parts.append("Examples: V_nom→Nominal Voltage, n_idle→Idle Rotation Speed, I_peak→Peak Current")
-    prompt_parts.append("")
-    prompt_parts.append(f"Variable name: {name}")
-    prompt_parts.append("Expanded phrase:")
-    
-    prompt = "\n".join(prompt_parts)
+    # Structured metadata prompt (JSON-only response)
+    meta = getattr(node, "metadata", None) or {}
+    node_type = str(meta.get("nodeType") or meta.get("role") or getattr(node, "model_type", "") or "")
+    data_type = str(getattr(node, "value_type", "") or "")
+    value = "" if node is None or node.value is None else str(node.value)
+    unit = "" if node is None else str(node.unit or "")
+    comment_bits = []
+    if node is not None and getattr(node, "conceptual_definition", ""):
+        comment_bits.append(str(node.conceptual_definition))
+    if node is not None and getattr(node, "source_description", ""):
+        comment_bits.append(str(node.source_description))
+    if context:
+        comment_bits.append(str(context))
+    comment = " | ".join(c for c in comment_bits if c).strip()
+    hierarchy_path = path or str(meta.get("aas_path") or meta.get("source_submodel") or "")
+    nearby_siblings = []
+    if isinstance(meta.get("nearby_sibling_names"), list):
+        nearby_siblings = meta.get("nearby_sibling_names")[:20]
+
+    prompt = f"""You are normalizing an abbreviated industrial parameter name.
+
+Your job is to produce a short canonical property label for semantic matching to AAS properties.
+
+Strict rules:
+- Output JSON only.
+- Maximum 5 words.
+- No sentences.
+- No examples.
+- No speculation.
+- No alternative meanings.
+- If the meaning is uncertain, return the original token unchanged.
+- Do not use general language if industrial metadata suggests a technical meaning.
+- Do not hallucinate.
+
+Source token: "{name}"
+Metadata:
+- nodeType: "{node_type}"
+- dataType: "{data_type}"
+- value: "{value}"
+- unit: "{unit}"
+- comment: "{comment}"
+- hierarchyPath: {json.dumps(hierarchy_path)}
+- nearby_sibling_names: {json.dumps(nearby_siblings)}
+
+Return exactly:
+{{
+  "expanded_name": "...",
+  "confidence": 0.0,
+  "reasoning_basis": "metadata_fallback"
+}}"""
     text = ""
     try:
         if LLAMA_BACKEND == 'ollama':
             import requests
             ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-            model_name = os.getenv("LLAMA_MODEL_NAME", "llama3.2")
+            model_name = os.getenv("LLAMA_MODEL_NAME", "gemma3:4b")
             response = requests.post(
                 f"{ollama_url}/api/generate",
                 json={
                     "model": model_name,
                     "prompt": prompt,
                     "stream": False,
-                    "options": {"temperature": 0.3, "max_tokens": 100}
+                    "options": {"temperature": 0.1, "max_tokens": 180}
                 },
                 timeout=20
             )
             if response.status_code == 200:
                 text = (response.json().get("response") or "").strip()
         elif LLAMA_BACKEND == 'llama_cpp' and LLAMA_MODEL:
-            response = LLAMA_MODEL(prompt, max_tokens=100, temperature=0.3, stop=["\n", "Output:"], echo=False)
+            response = LLAMA_MODEL(prompt, max_tokens=180, temperature=0.1, stop=["\n\n\n"], echo=False)
             if response and response.get('choices'):
                 text = (response['choices'][0].get('text') or "").strip()
-        # Remove any "Output:" or similar prefix
-        if text:
-            for prefix in ("Output:", "output:", "Expanded form:", "->"):
-                if text.strip().lower().startswith(prefix.lower()):
-                    text = text.strip()[len(prefix):].strip()
-            text = text.strip()
-        
-        # Post-process: Only expand single-letter abbreviations if Llama left them (fallback)
-        # This is a safety net - ideally Llama should handle this from training
-        if text:
-            words = text.split()
-            expanded_words = []
-            for word in words:
-                # Only expand if Llama left a single uppercase letter (indicates it didn't expand)
-                if len(word) == 1 and word.isupper() and word.isalpha():
-                    # Minimal fallback expansion based on path (only if path available)
-                    expanded_word = None
-                    if path:
-                        path_lower = path.lower()
-                        # Simple keyword matching as last resort
-                        if word == "V" and ("motor" in path_lower or "industrial" in path_lower or "electrical" in path_lower):
-                            expanded_word = "Voltage"
-                        elif word == "n" and ("motor" in path_lower or "mechanical" in path_lower or "idle" in name.lower()):
-                            expanded_word = "Rotation Speed"
-                        elif word == "I" and ("motor" in path_lower or "industrial" in path_lower or "electrical" in path_lower):
-                            expanded_word = "Current"
-                        elif word == "R" and ("motor" in path_lower or "electrical" in path_lower or "phase" in name.lower()):
-                            expanded_word = "Resistance"
-                    
-                    if expanded_word:
-                        expanded_words.append(expanded_word)
-                    else:
-                        # Keep as-is if we can't determine - let user correct if needed
-                        expanded_words.append(word)
-                else:
-                    expanded_words.append(word)
-            text = " ".join(expanded_words)
-        
-        if text and text.lower() != name.lower():
-            return text
+        parsed = _extract_json_object(text)
+        if not parsed:
+            return None
+        expanded = str(parsed.get("expanded_name", "")).strip()
+        if not expanded:
+            return None
+        # If uncertain/invalid output: keep original token unchanged.
+        if expanded.lower() == name.lower():
+            return name
+        if not _is_valid_short_label(expanded):
+            return name
+        return expanded
     except Exception:
         pass
     return None
@@ -738,7 +765,7 @@ def normalize_node_with_llama(node: SemanticNode, normalizer: Optional[NameNorma
     context = "; ".join(context_parts)
     
     # Use path-aware expansion
-    llama_expanded = expand_name_with_llama(node.name, context=context, path=path)
+    llama_expanded = expand_name_with_llama(node.name, context=context, path=path, node=node)
     if llama_expanded:
         node.metadata["normalized_name"] = llama_expanded
     else:
@@ -2215,12 +2242,14 @@ class DocumentLibrary:
         """
         self.support_folder = support_folder if support_folder is not None else "support_files"
         self.support_urls = support_urls or []
+        # Keep document lookup deterministic/local-first for SimVSM workflows.
+        self.enable_llm_document_search = False
         self.documents = {}
         self.normalizer = NameNormalizer()
         self.load_documents()
     
     def load_documents(self):
-        """Load all documents from support_files folder and URLs."""
+        """Load all documents from support_files folder (recursive, local only)."""
         # Load from local folder
         folder = self.support_folder or "support_files"
         base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -2242,36 +2271,36 @@ class DocumentLibrary:
         if chosen:
             self.support_folder = chosen
             print(f"  [INFO] Loading support documents from: {self.support_folder}")
-            
-            for filename in os.listdir(self.support_folder):
-                filepath = os.path.join(self.support_folder, filename)
-                if os.path.isfile(filepath):
-                    try:
-                        content = self._read_document(filepath)
-                        if content:
-                            self.documents[filename] = content
-                            file_count += 1
-                            print(f"    [OK] Loaded: {filename} ({len(content)} characters)")
-                    except Exception as e:
-                        print(f"    [WARNING] Could not read document {filename}: {e}")
+            files_to_load = []
+            for root, _, files in os.walk(self.support_folder):
+                for filename in files:
+                    filepath = os.path.join(root, filename)
+                    if os.path.isfile(filepath):
+                        files_to_load.append(filepath)
+
+            # Priority: abbreviations file first, then remaining files by path.
+            def _priority(path: str):
+                name = os.path.basename(path).lower()
+                if name in ("abbrevations.html", "abbreviations.html"):
+                    return (0, name)
+                return (1, path.lower())
+
+            for filepath in sorted(files_to_load, key=_priority):
+                filename = os.path.relpath(filepath, self.support_folder).replace("\\", "/")
+                try:
+                    content = self._read_document(filepath)
+                    if content:
+                        self.documents[filename] = content
+                        file_count += 1
+                        print(f"    [OK] Loaded: {filename} ({len(content)} characters)")
+                except Exception as e:
+                    print(f"    [WARNING] Could not read document {filename}: {e}")
         else:
             print(f"  [INFO] Support folder not found: {self.support_folder}")
             print(f"  [INFO] Tried: {candidates}")
-        
-        # Load from URLs
+
         if self.support_urls:
-            print(f"  [INFO] Loading support documents from {len(self.support_urls)} URL(s)...")
-            for url in self.support_urls:
-                try:
-                    content = self._fetch_url_content(url)
-                    if content:
-                        # Use URL as key (sanitized)
-                        url_key = url.replace("://", "_").replace("/", "_").replace(":", "_")[:100]
-                        self.documents[f"url_{url_key}"] = content
-                        file_count += 1
-                        print(f"    [OK] Loaded from URL: {url[:80]}... ({len(content)} characters)")
-                except Exception as e:
-                    print(f"    [WARNING] Could not fetch URL {url}: {e}")
+            print("  [INFO] support_urls provided but ignored (local support folder only).")
         
         if file_count > 0:
             print(f"  [OK] Loaded {file_count} support document(s)")
@@ -2693,8 +2722,8 @@ class DocumentLibrary:
                         }
                         best_score = score
         
-        # If no match found with traditional search, try LLM-enhanced search
-        if not best_match and LLAMA_AVAILABLE and context:
+        # Optional LLM document search fallback (disabled by default).
+        if not best_match and self.enable_llm_document_search and LLAMA_AVAILABLE and context:
             best_match = self._llm_search_documents(name, unit, value_type, context, alternate_names=all_names)
         
         # Debug output
@@ -2765,7 +2794,7 @@ Response:"""
             if LLAMA_BACKEND == 'ollama':
                 import requests
                 ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-                model_name = os.getenv("LLAMA_MODEL_NAME", "llama3.2")
+                model_name = os.getenv("LLAMA_MODEL_NAME", "gemma3:4b")
                 response = requests.post(
                     f"{ollama_url}/api/generate",
                     json={
@@ -3240,12 +3269,12 @@ class LlamaEnricher:
         
         Args:
             use_llama: Whether to use Llama for local reasoning
-            model_name: Model name for Ollama (e.g., "llama3.2", "llama3.1", "mistral")
-                       If None, uses LLAMA_MODEL_NAME env var or defaults to "llama3.2"
+            model_name: Model name for Ollama (e.g., "gemma3:4b", "gemma2:2b", "mistral")
+                       If None, uses LLAMA_MODEL_NAME env var or defaults to "gemma3:4b"
         """
         self.use_llama = use_llama and LLAMA_AVAILABLE
         self.backend = LLAMA_BACKEND
-        self.model_name = model_name or os.getenv("LLAMA_MODEL_NAME", "llama3.2")
+        self.model_name = model_name or os.getenv("LLAMA_MODEL_NAME", "gemma3:4b")
         self.generated_count = 0
         
         if self.use_llama:
@@ -3804,7 +3833,7 @@ Response:"""
             if LLAMA_BACKEND == 'ollama':
                 import requests
                 ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-                model_name = os.getenv("LLAMA_MODEL_NAME", "llama3.2")
+                model_name = os.getenv("LLAMA_MODEL_NAME", "gemma3:4b")
                 response = requests.post(
                     f"{ollama_url}/api/generate",
                     json={
