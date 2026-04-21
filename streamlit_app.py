@@ -184,7 +184,7 @@ def dict_to_semantic_node(node_dict: Dict) -> SemanticNode:
         meta["source_asset"] = node_dict.get("Source asset", "")
     if node_dict.get("Source submodel"):
         meta["source_submodel"] = node_dict.get("Source submodel", "")
-    return create_semantic_node_from_extraction(
+    node = create_semantic_node_from_extraction(
         name=node_dict.get("Name", ""),
         description=node_dict.get("Conceptual definition", ""),
         value=node_dict.get("Value", ""),
@@ -193,6 +193,20 @@ def dict_to_semantic_node(node_dict: Dict) -> SemanticNode:
         source_file=node_dict.get("Source file", ""),
         metadata=meta
     )
+    # Restore fields that the factory doesn't accept directly so dict <-> node
+    # round-trips don't drop usage / source_description / enrichment flags.
+    usage = node_dict.get("Usage of data (Affordance)")
+    if usage:
+        node.usage_of_data = usage
+    src_desc = node_dict.get("Source description")
+    if src_desc:
+        node.source_description = src_desc
+    if node_dict.get("Enriched") is True:
+        node.enriched = True
+    enrichment_src = node_dict.get("Enrichment source")
+    if enrichment_src:
+        node.enrichment_source = enrichment_src
+    return node
 
 
 def semantic_node_to_dict(node: SemanticNode) -> Dict:

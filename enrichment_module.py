@@ -3960,6 +3960,51 @@ Response:"""
         
         return None
     
+    def _enrich_source_description_from_documents(self, node: SemanticNode) -> bool:
+        """
+        Run a support-document search for ``node`` and copy the extracted text into
+        ``node.source_description`` (and possibly conceptual_definition / usage_of_data
+        if they were empty). Unlike :meth:`enrich_node`, this runs regardless of
+        whether the node already has a definition/usage, so the Streamlit
+        "Source description" column is populated even for SIMVSM nodes whose
+        conceptual_definition was pre-filled from the bundled parameter dictionary.
+        
+        Returns True if a support-file hit was found and applied, False otherwise.
+        """
+        if not self.documents or len(self.documents.documents) == 0:
+            return False
+        
+        # Pick the best search name (normalized if available)
+        search_name = node.name
+        if node.metadata and node.metadata.get("normalized_name"):
+            search_name = node.metadata["normalized_name"]
+        
+        # Feed both the original and normalized names so matches work whether
+        # the support file uses "max_V" or "maximum velocity".
+        name_variants = None
+        if node.name and node.name != search_name:
+            name_variants = [node.name]
+        
+        context = self._gather_context(node)
+        try:
+            doc_result = self.documents.search(
+                search_name, node.unit, node.value_type,
+                context=context, name_variants=name_variants,
+            )
+        except Exception as e:
+            print(f"    [WARNING] document search failed for '{node.name}': {e}")
+            return False
+        
+        if not doc_result:
+            return False
+        
+        was_enriched_before = node.enriched
+        was_missing_source_desc = not bool(node.source_description)
+        self._apply_enrichment(node, doc_result, "documents")
+        if node.enriched and not was_enriched_before and was_missing_source_desc:
+            self.enrichment_stats["enriched_from_documents"] += 1
+        return True
+    
     def enrich_node(self, node: SemanticNode, libraries_only: bool = False) -> bool:
         """
         Enrich a single semantic node with missing information.
@@ -4132,6 +4177,7 @@ Response:"""
         # Track what was missing before enrichment
         was_missing_definition = not bool(node.conceptual_definition)
         was_missing_usage = not bool(node.usage_of_data)
+        was_missing_source_desc = not bool(node.source_description)
         
         # Fill missing data
         if was_missing_definition and "definition" in result and result["definition"]:
@@ -4140,9 +4186,37 @@ Response:"""
         if was_missing_usage and "usage" in result and result["usage"]:
             node.usage_of_data = result["usage"]
         
+        # Support-document hits: always surface the extracted description in
+        # `source_description` so the Streamlit UI "Source description" column
+        # shows the real support-file content, even when the node already had
+        # a conceptual definition from the bundled SIMVSM dictionary.
+        if source == "documents":
+            doc_text = (result.get("definition") or "").strip()
+            doc_file = (result.get("source_file") or "").strip()
+            if doc_text:
+                snippet = doc_text if len(doc_text) <= 1200 else doc_text[:1200].rstrip() + "…"
+                if doc_file:
+                    support_block = f"[Support file: {doc_file}]\n{snippet}"
+                else:
+                    support_block = snippet
+                if not node.source_description:
+                    node.source_description = support_block
+                elif support_block not in node.source_description:
+                    node.source_description = f"{node.source_description.rstrip()}\n\n{support_block}"
+                # Replace the canned "Information extracted from X" usage text
+                # with something that actually reflects the support-file hit.
+                if not was_missing_usage and doc_file and (
+                    node.usage_of_data.strip().lower().startswith("information extracted from")
+                    or not node.usage_of_data.strip()
+                ):
+                    node.usage_of_data = f"Described in support document: {doc_file}"
+                elif was_missing_usage and doc_file:
+                    node.usage_of_data = f"Described in support document: {doc_file}"
+        
         # Only mark as enriched if we actually filled missing data
         data_was_filled = (was_missing_definition and bool(node.conceptual_definition)) or \
-                         (was_missing_usage and bool(node.usage_of_data))
+                         (was_missing_usage and bool(node.usage_of_data)) or \
+                         (source == "documents" and was_missing_source_desc and bool(node.source_description))
         
         if data_was_filled:
             node.enriched = True
@@ -4471,12 +4545,24 @@ Do not include any explanation, just the data type."""
         
         # Normalization is done only in the pipeline (Step 2b), not here. Use existing normalized_name or node.name.
         
+        # Pass A: for every node (even those with full def+usage), try to pull a
+        # description from the support documents into `source_description`. This
+        # guarantees the Streamlit "Source description" column is populated
+        # whenever the support files actually contain something for that name.
+        if len(self.documents.documents) > 0:
+            print(f"  Support-file pass: scanning {len(collection.nodes)} nodes against {len(self.documents.documents)} support document(s)...")
+            for node in collection.nodes:
+                try:
+                    self._enrich_source_description_from_documents(node)
+                except Exception as e:
+                    print(f"    [WARNING] support-file pass failed for '{node.name}': {e}")
+        
         nodes_to_enrich = collection.get_nodes_needing_enrichment()
         
         print(f"Found {len(nodes_to_enrich)} nodes needing enrichment")
         
         if len(nodes_to_enrich) == 0:
-            print("  [INFO] All nodes already have descriptions, no enrichment needed")
+            print("  [INFO] All nodes already have descriptions, no library/LLM enrichment needed")
             return self.enrichment_stats
         
         # Show which nodes will be enriched
