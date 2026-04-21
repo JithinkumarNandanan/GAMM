@@ -33,8 +33,11 @@ import os
 import importlib
 import pickle
 import hashlib
+import threading
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Optional, Tuple, Set, Any
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from semantic_node_enhanced import SemanticNode, SemanticNodeCollection
 
 # Set GRPC verbosity to reduce noise (helps with firewall/proxy issues)
@@ -198,6 +201,26 @@ if not LLAMA_AVAILABLE:
     print("  - Ollama: https://ollama.ai/ (recommended)")
     print("  - llama-cpp-python: pip install llama-cpp-python")
     print("  - transformers: pip install transformers torch")
+
+
+def refresh_ollama_backend_if_needed() -> None:
+    """
+    Re-probe Ollama if it was not available at import time (Streamlit often starts before `ollama serve`).
+    Sets module-level LLAMA_AVAILABLE / LLAMA_BACKEND when /api/tags succeeds.
+    """
+    global LLAMA_AVAILABLE, LLAMA_BACKEND
+    if LLAMA_AVAILABLE and LLAMA_BACKEND == "ollama":
+        return
+    try:
+        import requests
+
+        url = os.getenv("OLLAMA_URL", "http://localhost:11434").rstrip("/")
+        r = requests.get(f"{url}/api/tags", timeout=3)
+        if r.status_code == 200:
+            LLAMA_BACKEND = "ollama"
+            LLAMA_AVAILABLE = True
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -620,6 +643,20 @@ def _is_valid_short_label(label: str) -> bool:
     return 1 <= len(words) <= 5
 
 
+_thread_local_ollama = threading.local()
+
+
+def _get_thread_local_ollama_session():
+    """Thread-local Session so parallel normalize workers do not share one requests.Session."""
+    import requests
+
+    s = getattr(_thread_local_ollama, "session", None)
+    if s is None:
+        s = requests.Session()
+        _thread_local_ollama.session = s
+    return s
+
+
 def expand_name_with_llama(name: str, context: str = "", path: str = "", node: Optional[SemanticNode] = None) -> Optional[str]:
     """
     Use local Llama to expand a technical variable name into a human-readable phrase.
@@ -635,6 +672,7 @@ def expand_name_with_llama(name: str, context: str = "", path: str = "", node: O
     Returns:
         Expanded name or None if Llama unavailable/failed
     """
+    refresh_ollama_backend_if_needed()
     if not LLAMA_AVAILABLE:
         return None
     
@@ -691,18 +729,18 @@ Return exactly:
     text = ""
     try:
         if LLAMA_BACKEND == 'ollama':
-            import requests
             ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
             model_name = os.getenv("LLAMA_MODEL_NAME", "gemma3:4b")
-            response = requests.post(
+            session = _get_thread_local_ollama_session()
+            response = session.post(
                 f"{ollama_url}/api/generate",
                 json={
                     "model": model_name,
                     "prompt": prompt,
                     "stream": False,
-                    "options": {"temperature": 0.1, "max_tokens": 180}
+                    "options": {"temperature": 0.1, "num_predict": 180},
                 },
-                timeout=20
+                timeout=20,
             )
             if response.status_code == 200:
                 text = (response.json().get("response") or "").strip()
@@ -751,7 +789,9 @@ def normalize_node_with_llama(node: SemanticNode, normalizer: Optional[NameNorma
     Context-aware: Uses path (asset/submodel) to disambiguate abbreviations (V, P, T, f).
     Stores result in node.metadata["normalized_name"].
     """
-    meta = getattr(node, 'metadata', None) or {}
+    if node.metadata is None:
+        node.metadata = {}
+    meta = node.metadata
     
     # Build path for context-aware disambiguation
     path = _build_path_from_metadata(meta)
@@ -773,18 +813,26 @@ def normalize_node_with_llama(node: SemanticNode, normalizer: Optional[NameNorma
         node.metadata["normalized_name"] = _generic_normalize_name(node.name)
 
 
-def normalize_collection(collection: SemanticNodeCollection, document_library=None, fast_only: bool = False) -> None:
+def normalize_collection(
+    collection: SemanticNodeCollection,
+    document_library=None,
+    fast_only: bool = False,
+    max_workers: Optional[int] = None,
+    progress_callback: Optional[Callable[[int, int], None]] = None,
+) -> None:
     """
     Normalize all nodes in a collection using document data (if provided) and optionally Ollama.
     Sets metadata['normalized_name'] on each node.
-    
+
     When document_library is provided (e.g. enricher.documents), first tries to get
     a normalization hint from support documents (e.g. "max_V: maximum velocity" -> "maximum velocity").
     If no hint is found:
       - fast_only=True: use generic expansion only (no Ollama) – fast, good for large collections.
-      - fast_only=False: use Ollama to expand the name (context-aware) – slow (one Ollama call per node).
+      - fast_only=False: use Ollama (context-aware). Identical (name, asset/submodel path) shares one
+        Ollama call; remaining work runs in parallel (OLLAMA_NORMALIZE_CONCURRENCY, default 2).
     """
     normalizer = NameNormalizer(use_gemini=False) if not fast_only else None
+    nodes_need_llama: List[SemanticNode] = []
     for node in collection.nodes:
         hint = None
         if document_library and getattr(document_library, "get_normalization_hint", None):
@@ -798,7 +846,48 @@ def normalize_collection(collection: SemanticNodeCollection, document_library=No
                 node.metadata = {}
             node.metadata["normalized_name"] = _generic_normalize_name(node.name)
         else:
-            normalize_node_with_llama(node, normalizer=normalizer)
+            nodes_need_llama.append(node)
+
+    if not nodes_need_llama:
+        return
+
+    refresh_ollama_backend_if_needed()
+
+    groups: Dict[Tuple[str, str], List[SemanticNode]] = defaultdict(list)
+    for node in nodes_need_llama:
+        meta = getattr(node, "metadata", None) or {}
+        path = _build_path_from_metadata(meta)
+        groups[(node.name, path)].append(node)
+
+    def _normalize_group(node_list: List[SemanticNode]) -> None:
+        rep = node_list[0]
+        normalize_node_with_llama(rep, normalizer=normalizer)
+        nn = rep.metadata.get("normalized_name") if rep.metadata else None
+        for other in node_list[1:]:
+            if not other.metadata:
+                other.metadata = {}
+            other.metadata["normalized_name"] = nn
+
+    group_lists = list(groups.values())
+    total_groups = len(group_lists)
+    workers_raw = max_workers if max_workers is not None else int(os.getenv("OLLAMA_NORMALIZE_CONCURRENCY", "2"))
+    workers = max(1, workers_raw)
+
+    if workers <= 1:
+        for i, node_list in enumerate(group_lists, 1):
+            _normalize_group(node_list)
+            if progress_callback:
+                progress_callback(i, total_groups)
+        return
+
+    done = 0
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = [ex.submit(_normalize_group, nl) for nl in group_lists]
+        for fut in as_completed(futures):
+            fut.result()
+            done += 1
+            if progress_callback:
+                progress_callback(done, total_groups)
 
 
 # eCl@ss CDP Webservice API (https://www.eclass-cdp.com/) - certificate/token required
